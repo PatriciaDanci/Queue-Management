@@ -1,10 +1,13 @@
 package org.example;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
-public class UI extends JFrame  {
+public class UI extends JFrame {
 
     private JFrame frame;
     private JLabel clientsLabel;
@@ -121,20 +124,81 @@ public class UI extends JFrame  {
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        startButton.addActionListener(new ActionListener() {
+        JLabel strategyLabel = new JLabel("Strategy:");
+        strategyLabel.setFont(timesNewRoman);
+        strategyLabel.setBounds(50, 230, 150, 20);
+        frame.getContentPane().add(strategyLabel);
+
+        JButton queueButton = new JButton("QUEUE");
+        queueButton.setFont(timesNewRoman);
+        queueButton.setBounds(200, 230, 100, 20);
+        frame.getContentPane().add(queueButton);
+
+        JButton timeButton = new JButton("TIME");
+        timeButton.setFont(timesNewRoman);
+        timeButton.setBounds(200, 260, 100, 20);
+        frame.getContentPane().add(timeButton);
+
+        queueButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int clients = Integer.parseInt(clientsTextField.getText());
-                int queues = Integer.parseInt(queuesTextField.getText());
-                int simulationInterval = Integer.parseInt(simulationIntervalTextField.getText());
-                int minArrivalTime = Integer.parseInt(minArrivalTimeTextField.getText());
-                int maxArrivalTime = Integer.parseInt(maxArrivalTimeTextField.getText());
-                int minServiceTime = Integer.parseInt(minServiceTimeTextField.getText());
-                int maxServiceTime = Integer.parseInt(maxServiceTimeTextField.getText());
+                SimulationManager.setStrategy(SelectionPolicy.SHORTEST_QUEUE);
             }
         });
 
-    }
+        timeButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                SimulationManager.setStrategy(SelectionPolicy.SHORTEST_TIME);
+            }
+        });
+
+
+        startButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                    int clients = Integer.parseInt(clientsTextField.getText());
+                    int queues = Integer.parseInt(queuesTextField.getText());
+                    int simulationInterval = Integer.parseInt(simulationIntervalTextField.getText());
+                    int minArrivalTime = Integer.parseInt(minArrivalTimeTextField.getText());
+                    int maxArrivalTime = Integer.parseInt(maxArrivalTimeTextField.getText());
+                    int minServiceTime = Integer.parseInt(minServiceTimeTextField.getText());
+                    int maxServiceTime = Integer.parseInt(maxServiceTimeTextField.getText());
+
+                // Check for invalid inputs
+                if (clients <= 0 || queues <= 0) {
+                    JOptionPane.showMessageDialog(frame, "Number of clients and queues must be greater than 0", "Invalid Inputs", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (maxArrivalTime <= minArrivalTime) {
+                    JOptionPane.showMessageDialog(frame, "Max arrival time must be greater than min arrival time", "Invalid Inputs", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                if (maxServiceTime <= minServiceTime) {
+                    JOptionPane.showMessageDialog(frame, "Max service time must be greater than min service time", "Invalid Inputs", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                // Check if a strategy is selected
+                if (SimulationManager.selectionPolicy == null) {
+                    JOptionPane.showMessageDialog(frame, "Choose a strategy", "Invalid Inputs", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                    SimulationManager simulationManager = new SimulationManager(queues, clients, simulationInterval, minArrivalTime, maxArrivalTime, minServiceTime, maxServiceTime, UI.this, SimulationManager.selectionPolicy);
+                    Thread thread = new Thread(simulationManager);
+                    thread.start();
+
+            }
+        });
+
 
     }
 
+    public void appendText(String text) {
+        display.append(text + "\n");
+        display.setCaretPosition(display.getDocument().getLength());
+    }
+
+
+}
