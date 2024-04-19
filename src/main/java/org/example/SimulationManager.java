@@ -154,6 +154,10 @@ public class SimulationManager implements Runnable {
             }
         }
 
+        for(Queue queue: scheduler.getQueues()){
+            queue.setContinueSimulation(false);
+        }
+
         log("Simulation ended.");
 
         double totalServiceTime = 0.0;

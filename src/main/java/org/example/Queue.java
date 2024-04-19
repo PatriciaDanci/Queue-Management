@@ -9,12 +9,14 @@ class Queue implements Runnable {
     private AtomicInteger servicePeriod;
     private AtomicInteger waitingPeriod;
     private int id;
+    private boolean continueSimulation;
 
     public Queue(int id) {
         clients = new LinkedBlockingQueue<>();
         servicePeriod = new AtomicInteger(0);
         waitingPeriod = new AtomicInteger(0);
         this.id = id;
+        continueSimulation = true;
     }
 
     public BlockingQueue<Client> getClients() {
@@ -31,6 +33,14 @@ class Queue implements Runnable {
 
     public void setServicePeriod(AtomicInteger servicePeriod) {
         this.servicePeriod = servicePeriod;
+    }
+
+    public void setContinueSimulation(boolean continueSimulation) {
+        this.continueSimulation = continueSimulation;
+    }
+
+    private boolean getCotinueSimulation() {
+        return continueSimulation;
     }
 
     public AtomicInteger getWaitingPeriod() {
@@ -61,7 +71,7 @@ class Queue implements Runnable {
 
 @Override
     public void run() {
-    while (true) {
+    while (continueSimulation) {
         if (!clients.isEmpty()) {
             Client client = clients.peek();
             try {
